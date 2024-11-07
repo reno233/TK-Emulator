@@ -10,9 +10,9 @@ jobs:
   test:
     runs-on: ubuntu-latest
     env:
-      API_LEVEL: 30
-      TARGET: google_apis
-      CPU: x86_64
+      API_LEVEL: 30               # Versão mais recente da API
+      TARGET: google_apis         # API do Google
+      CPU: x86_64                 # Arquitetura x86_64
       EMULATOR_NAME: test-emulator
 
     steps:
@@ -44,19 +44,21 @@ jobs:
       run: |
         rm -rf ~/.android/*
         rm -rf $ANDROID_HOME/.android/*
-        sdkmanager --update
+        sdkmanager --no_https --update
       shell: bash
 
     - name: Install SDK Components
       run: |
-        sdkmanager --update
-        sdkmanager "platform-tools" "emulator" "system-images;android-30;google_apis;x86_64"
+        sdkmanager --no_https --install "platform-tools" "emulator" "system-images;android-${API_LEVEL};google_apis;${CPU}"
       shell: bash
 
-    - name: Install System Image
+    - name: List SDK Repositories
+      run: sdkmanager --list
+      shell: bash
+
+    - name: Install Specific System Image
       run: |
-        echo "Installing system image..."
-        yes | sdkmanager "system-images;android-${API_LEVEL};google_apis;${CPU}"
+        sdkmanager --no_https "system-images;android-${API_LEVEL};google_apis;${CPU}"
       shell: bash
 
     - name: Create AVD
