@@ -31,6 +31,13 @@ jobs:
         sudo apt-get install -y qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils
         sudo systemctl enable --now libvirtd
 
+    - name: Clean Android SDK Cache
+      run: |
+        rm -rf ~/.android/*
+        rm -rf $ANDROID_HOME/.android/*
+        sdkmanager --update
+      shell: bash
+
     - name: Set up Android SDK
       uses: android-actions/setup-android@v2
       with:
@@ -39,8 +46,10 @@ jobs:
         arch: ${{ env.CPU }}
         channel: 'stable'
 
-    - name: Update SDK Manager
-      run: sdkmanager --update
+    - name: Install SDK Components
+      run: |
+        sdkmanager --update
+        sdkmanager "platform-tools" "emulator" "system-images;android-30;google_apis;x86_64"
       shell: bash
 
     - name: Install System Image
