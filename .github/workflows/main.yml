@@ -10,9 +10,9 @@ jobs:
   test:
     runs-on: ubuntu-latest
     env:
-      API_LEVEL: 30               # Tentei mudar para uma versão mais nova
-      TARGET: google_apis         # Mantivemos a imagem com APIs do Google
-      CPU: x86_64                 # Usando arquitetura x86_64 para compatibilidade
+      API_LEVEL: 30               # Versão mais recente da API
+      TARGET: google_apis         # API do Google
+      CPU: x86_64                 # Arquitetura x86_64
       EMULATOR_NAME: test-emulator
 
     steps:
@@ -30,12 +30,6 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils
         sudo systemctl enable --now libvirtd
-
-    - name: Clean Android SDK Cache
-      run: |
-        rm -rf ~/.android/*
-        rm -rf $ANDROID_HOME/.android/*
-        sdkmanager --update
       shell: bash
 
     - name: Set up Android SDK
