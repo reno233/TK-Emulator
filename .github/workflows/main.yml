@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       API_LEVEL: 30           # Nível da API do Android desejado
-      TARGET: google_apis      # Tipo de imagem (altere para `default` se preferir)
+      TARGET: default          # Tipo de imagem (mais leve e estável)
       CPU: x86_64              # Arquitetura do processador
       EMULATOR_NAME: test-emulator
 
@@ -52,8 +52,13 @@ jobs:
 
     - name: Start Emulator
       run: |
-        $ANDROID_HOME/emulator/emulator -avd $EMULATOR_NAME -no-snapshot -no-audio -no-window &
+        $ANDROID_HOME/emulator/emulator -avd $EMULATOR_NAME -no-snapshot -no-audio -no-window -gpu off -no-accel &
         adb wait-for-device
+      shell: bash
+
+    - name: Diagnostic Check - List Connected Devices
+      run: adb devices
+      shell: bash
 
     - name: Wait for Emulator to be Fully Booted
       run: |
