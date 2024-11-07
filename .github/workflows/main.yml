@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       API_LEVEL: 30           # Nível da API do Android desejado
-      TARGET: default          # Tipo de imagem
+      TARGET: google_apis      # Tipo de imagem (altere para `default` se preferir)
       CPU: x86_64              # Arquitetura do processador
       EMULATOR_NAME: test-emulator
 
@@ -37,9 +37,13 @@ jobs:
         api-level: ${{ env.API_LEVEL }}
         target: ${{ env.TARGET }}
         arch: ${{ env.CPU }}
-        emulator-name: ${{ env.EMULATOR_NAME }}
-        force-create: true
         channel: 'stable'
+
+    - name: Create AVD
+      run: |
+        echo "Creating AVD..."
+        echo "no" | avdmanager create avd -n $EMULATOR_NAME -k "system-images;android-${API_LEVEL};${TARGET};${CPU}" --force
+      shell: bash
 
     - name: Start Emulator
       run: |
