@@ -52,7 +52,7 @@ jobs:
 
     - name: Start Emulator
       run: |
-        $ANDROID_HOME/emulator/emulator -avd $EMULATOR_NAME -no-snapshot -no-audio -no-window -gpu off -no-accel &
+        $ANDROID_HOME/emulator/emulator -avd $EMULATOR_NAME -no-snapshot -no-audio -no-window -gpu off -no-accel -no-metrics &
         adb wait-for-device
       shell: bash
 
