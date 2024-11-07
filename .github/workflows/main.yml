@@ -69,13 +69,16 @@ jobs:
 
     - name: Start Emulator
       run: |
-        $ANDROID_HOME/emulator/emulator -avd $EMULATOR_NAME -no-window -no-audio -no-snapshot-load -gpu off -no-cache -no-metrics &
+        $ANDROID_HOME/emulator/emulator -avd $EMULATOR_NAME -no-window -no-audio -no-snapshot-load -gpu off -no-cache -no-metrics -verbose &
         # Aguarda até o emulador estar pronto (5 minutos)
+        adb devices
         adb wait-for-device
       shell: bash
 
     - name: Diagnostic Check - List Connected Devices
-      run: adb devices
+      run: |
+        echo "Checking connected devices..."
+        adb devices
       shell: bash
 
     - name: Wait for Emulator to be Fully Booted
