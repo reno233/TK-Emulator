@@ -10,9 +10,9 @@ jobs:
   test:
     runs-on: ubuntu-latest
     env:
-      API_LEVEL: 29               # Nível da API do Android
-      TARGET: google_apis         # Mudado para uma imagem com APIs do Google
-      CPU: armeabi-v7a             # Arquitetura ARM
+      API_LEVEL: 30               # Tentei mudar para uma versão mais nova
+      TARGET: google_apis         # Mantivemos a imagem com APIs do Google
+      CPU: x86_64                 # Usando arquitetura x86_64 para compatibilidade
       EMULATOR_NAME: test-emulator
 
     steps:
