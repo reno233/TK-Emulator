@@ -38,15 +38,13 @@ jobs:
           yes | $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses
           $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager "platform-tools" "emulator" "platforms;android-30" "system-images;android-30;google_apis;x86_64"
 
-      # Criar e iniciar o emulador com ajustes para desativar as métricas e evitar o erro do PulseAudio
+      # Criar e iniciar o emulador
       - name: Start Emulator with Google Play
         run: |
-          export PULSE_SERVER=unix:/dev/null  # Desativar o PulseAudio
           echo "no" | $HOME/android-sdk/cmdline-tools/latest/bin/avdmanager create avd -n test_avd -k "system-images;android-30;google_apis;x86_64" --force
-          $HOME/android-sdk/emulator/emulator -avd test_avd -no-snapshot -no-window -no-boot-anim -accel off -no-metrics &
+          $HOME/android-sdk/emulator/emulator -avd test_avd -no-snapshot -no-window -no-boot-anim -accel off &
           adb wait-for-device
           sleep 120  # Aguarda 120 segundos para garantir que o emulador inicializou
-
 
       # Aguardar inicialização do emulador
       - name: Wait for Emulator to Boot
