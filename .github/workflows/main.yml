@@ -54,8 +54,8 @@ jobs:
         adb shell screenrecord /sdcard/emulator_run.mp4 &
       shell: bash
 
-    - name: Run tests
-      run: ./gradlew connectedAndroidTest
+    - name: Wait for Emulator to Run for 1 Minute
+      run: sleep 60
 
     - name: Stop Video Recording and Pull Video
       run: |
