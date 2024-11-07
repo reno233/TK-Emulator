@@ -42,7 +42,7 @@ jobs:
       - name: Start Emulator with Google Play
         run: |
           echo "no" | $HOME/android-sdk/cmdline-tools/latest/bin/avdmanager create avd -n test_avd -k "system-images;android-30;google_apis;x86_64" --force
-          $HOME/android-sdk/emulator/emulator -avd test_avd -no-snapshot -no-window -no-boot-anim -accel off &
+          $HOME/android-sdk/emulator/emulator -avd test_avd -no-snapshot -no-window -no-boot-anim -accel off -no-metrics &
           adb wait-for-device
           sleep 120  # Aguarda 120 segundos para garantir que o emulador inicializou
 
