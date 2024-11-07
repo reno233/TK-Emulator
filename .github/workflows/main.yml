@@ -10,9 +10,9 @@ jobs:
   test:
     runs-on: ubuntu-latest
     env:
-      API_LEVEL: 30           # Nível da API do Android desejado
-      TARGET: default          # Tipo de imagem (mais leve e estável)
-      CPU: x86_64              # Arquitetura do processador
+      API_LEVEL: 29               # Nível da API do Android (mais estável)
+      TARGET: default              # Tipo de imagem mais leve
+      CPU: armeabi-v7a             # Arquitetura ARM
       EMULATOR_NAME: test-emulator
 
     steps:
@@ -52,7 +52,7 @@ jobs:
 
     - name: Start Emulator
       run: |
-        $ANDROID_HOME/emulator/emulator -avd $EMULATOR_NAME -no-snapshot -no-audio -no-window -gpu off -no-accel -no-metrics &
+        $ANDROID_HOME/emulator/emulator -avd $EMULATOR_NAME -no-window -no-audio -no-snapshot-load -gpu off -no-cache -no-metrics &
         adb wait-for-device
       shell: bash
 
@@ -69,15 +69,6 @@ jobs:
           timeout=$((timeout+5))
           boot_completed=$(adb shell getprop sys.boot_completed | tr -d '\r')
           echo "Waiting for emulator to fully boot... ($timeout seconds elapsed)"
-        done
-
-        # Verifica se a tela inicial está pronta
-        device_ready=$(adb shell dumpsys window | grep -E 'mCurrentFocus.*Home')
-        while [ -z "$device_ready" ] && [ $timeout -lt 300 ]; do
-          sleep 5
-          timeout=$((timeout+5))
-          device_ready=$(adb shell dumpsys window | grep -E 'mCurrentFocus.*Home')
-          echo "Waiting for home screen to be ready... ($timeout seconds elapsed)"
         done
 
     - name: Start Video Recording
