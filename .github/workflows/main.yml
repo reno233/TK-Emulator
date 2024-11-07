@@ -58,22 +58,6 @@ jobs:
           done
           echo "Emulador inicializado com sucesso!"
 
-      # Baixar o APK do Google Chrome
-      - name: Download Google Chrome APK
-        run: |
-          wget https://dl.google.com/android/repository/chrome/GoogleChrome.apk -O google_chrome.apk
-          adb push google_chrome.apk /data/local/tmp/
-
-      # Instalar o Google Chrome
-      - name: Install Google Chrome
-        run: |
-          adb shell pm install -r /data/local/tmp/google_chrome.apk || echo "Google Chrome já instalado ou erro ao instalar"
-
-      # Iniciar o navegador e navegar para o TikTok
-      - name: Open TikTok in Browser
-        run: |
-          adb shell am start -a android.intent.action.VIEW -d "https://www.tiktok.com"
-
       # Gravar o vídeo durante a execução do emulador
       - name: Start Screen Recording
         run: |
