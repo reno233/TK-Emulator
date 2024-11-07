@@ -64,11 +64,20 @@ jobs:
       run: |
         boot_completed=false
         timeout=0
-        while [ "$boot_completed" = "false" ] && [ $timeout -lt 300 ]; do
+        while [ "$boot_completed" != "1" ] && [ $timeout -lt 300 ]; do
           sleep 5
           timeout=$((timeout+5))
           boot_completed=$(adb shell getprop sys.boot_completed | tr -d '\r')
           echo "Waiting for emulator to fully boot... ($timeout seconds elapsed)"
+        done
+
+        # Verifica se a tela inicial está pronta
+        device_ready=$(adb shell dumpsys window | grep -E 'mCurrentFocus.*Home')
+        while [ -z "$device_ready" ] && [ $timeout -lt 300 ]; do
+          sleep 5
+          timeout=$((timeout+5))
+          device_ready=$(adb shell dumpsys window | grep -E 'mCurrentFocus.*Home')
+          echo "Waiting for home screen to be ready... ($timeout seconds elapsed)"
         done
 
     - name: Start Video Recording
@@ -81,7 +90,7 @@ jobs:
 
     - name: Stop Video Recording and Pull Video
       run: |
-        adb shell pkill -l2 screenrecord
+        adb shell pkill -l2 screenrecord || echo "Screenrecord may not have been running"
         adb pull /sdcard/emulator_run.mp4 .
       shell: bash
 
