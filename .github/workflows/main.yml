@@ -39,6 +39,11 @@ jobs:
         arch: ${{ env.CPU }}
         channel: 'stable'
 
+    - name: Install System Image
+      run: |
+        echo "Installing system image..."
+        yes | sdkmanager "system-images;android-${API_LEVEL};${TARGET};${CPU}"
+
     - name: Create AVD
       run: |
         echo "Creating AVD..."
