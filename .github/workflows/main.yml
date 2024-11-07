@@ -70,6 +70,7 @@ jobs:
     - name: Start Emulator
       run: |
         $ANDROID_HOME/emulator/emulator -avd $EMULATOR_NAME -no-window -no-audio -no-snapshot-load -gpu off -no-cache -no-metrics &
+        # Aguarda até o emulador estar pronto (5 minutos)
         adb wait-for-device
       shell: bash
 
@@ -87,6 +88,11 @@ jobs:
           boot_completed=$(adb shell getprop sys.boot_completed | tr -d '\r')
           echo "Waiting for emulator to fully boot... ($timeout seconds elapsed)"
         done
+        if [ "$boot_completed" != "1" ]; then
+          echo "Emulator did not boot successfully. Check logs for more information."
+          exit 1
+        fi
+      shell: bash
 
     - name: Start Video Recording
       run: |
