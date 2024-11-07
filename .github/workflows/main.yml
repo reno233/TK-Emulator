@@ -1,4 +1,4 @@
-name: Run Android Emulator
+name: Run Android Emulator with Video Recording
 
 on:
   push:
@@ -25,7 +25,7 @@ jobs:
         distribution: 'zulu'
         java-version: '11'
 
-    - name: Install Android SDK
+    - name: Install Android SDK and dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils
@@ -49,5 +49,22 @@ jobs:
         adb shell settings put global transition_animation_scale 0
         adb shell settings put global animator_duration_scale 0
 
+    - name: Start Video Recording
+      run: |
+        adb shell screenrecord /sdcard/emulator_run.mp4 &
+      shell: bash
+
     - name: Run tests
       run: ./gradlew connectedAndroidTest
+
+    - name: Stop Video Recording and Pull Video
+      run: |
+        adb shell pkill -l2 screenrecord
+        adb pull /sdcard/emulator_run.mp4 .
+      shell: bash
+
+    - name: Upload Video as Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: emulator-run-video
+        path: emulator_run.mp4
