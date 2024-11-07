@@ -10,8 +10,8 @@ jobs:
   test:
     runs-on: ubuntu-latest
     env:
-      API_LEVEL: 29               # Nível da API do Android (mais estável)
-      TARGET: default              # Tipo de imagem mais leve
+      API_LEVEL: 29               # Nível da API do Android
+      TARGET: google_apis         # Mudado para uma imagem com APIs do Google
       CPU: armeabi-v7a             # Arquitetura ARM
       EMULATOR_NAME: test-emulator
 
@@ -39,15 +39,20 @@ jobs:
         arch: ${{ env.CPU }}
         channel: 'stable'
 
+    - name: Update SDK Manager
+      run: sdkmanager --update
+      shell: bash
+
     - name: Install System Image
       run: |
         echo "Installing system image..."
-        yes | sdkmanager "system-images;android-${API_LEVEL};${TARGET};${CPU}"
+        yes | sdkmanager "system-images;android-${API_LEVEL};google_apis;${CPU}"
+      shell: bash
 
     - name: Create AVD
       run: |
         echo "Creating AVD..."
-        echo "no" | avdmanager create avd -n $EMULATOR_NAME -k "system-images;android-${API_LEVEL};${TARGET};${CPU}" --force
+        echo "no" | avdmanager create avd -n $EMULATOR_NAME -k "system-images;android-${API_LEVEL};google_apis;${CPU}" --force
       shell: bash
 
     - name: Start Emulator
