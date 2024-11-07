@@ -10,9 +10,9 @@ jobs:
   test:
     runs-on: ubuntu-latest
     env:
-      API_LEVEL: 30               # Versão mais recente da API
-      TARGET: google_apis         # API do Google
-      CPU: x86_64                 # Arquitetura x86_64
+      API_LEVEL: 30
+      TARGET: google_apis
+      CPU: x86_64
       EMULATOR_NAME: test-emulator
 
     steps:
@@ -39,6 +39,13 @@ jobs:
         target: ${{ env.TARGET }}
         arch: ${{ env.CPU }}
         channel: 'stable'
+
+    - name: Clean Android SDK Cache and Update
+      run: |
+        rm -rf ~/.android/*
+        rm -rf $ANDROID_HOME/.android/*
+        sdkmanager --update
+      shell: bash
 
     - name: Install SDK Components
       run: |
