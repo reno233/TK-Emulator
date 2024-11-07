@@ -39,10 +39,10 @@ jobs:
           $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager "platform-tools" "emulator" "platforms;android-30" "system-images;android-30;google_apis;x86_64"
 
       # Criar e iniciar o emulador
-      - name: Start Emulator with Google Play
+      - name: Start Emulator with Google Play and Record Video
         run: |
           echo "no" | $HOME/android-sdk/cmdline-tools/latest/bin/avdmanager create avd -n test_avd -k "system-images;android-30;google_apis;x86_64" --force
-          $HOME/android-sdk/emulator/emulator -avd test_avd -no-snapshot -no-window -no-boot-anim -accel off &
+          $HOME/android-sdk/emulator/emulator -avd test_avd -no-snapshot -no-window -no-boot-anim -accel off -record /tmp/emulator_recording.mp4 &
           adb wait-for-device
           sleep 120  # Aguarda 120 segundos para garantir que o emulador inicializou
 
@@ -73,3 +73,10 @@ jobs:
       - name: Open TikTok in Browser
         run: |
           adb shell am start -a android.intent.action.VIEW -d "https://www.tiktok.com"
+          
+      # Fim da gravação do vídeo
+      - name: Stop Video Recording
+        run: |
+          # Finalizar a gravação do vídeo após 60 segundos (ajuste conforme necessário)
+          sleep 60
+          adb shell "input keyevent 4"  # Simula pressionamento de "Back" no Android para parar a gravação
