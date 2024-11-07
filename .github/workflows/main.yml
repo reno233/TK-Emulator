@@ -61,14 +61,15 @@ jobs:
       # Gravar o vídeo durante a execução do emulador
       - name: Start Screen Recording
         run: |
-          adb shell screenrecord /sdcard/tiktok_recording.mp4 &
+          adb shell mkdir -p /data/local/tmp  # Garante que o diretório existe
+          adb shell screenrecord /data/local/tmp/tiktok_recording.mp4 &
           sleep 120  # Tempo de gravação. Ajuste conforme necessário.
 
       # Parar a gravação após o tempo
       - name: Stop Screen Recording
         run: |
-          adb shell killall -2 screenrecord
-          adb pull /sdcard/tiktok_recording.mp4 ./tiktok_recording.mp4
+          adb shell killall -2 screenrecord || echo "Nenhum processo de screenrecord encontrado para interromper"
+          adb pull /data/local/tmp/tiktok_recording.mp4 ./tiktok_recording.mp4 || echo "Arquivo de gravação não encontrado"
 
       # Fazer upload do vídeo gravado
       - name: Upload Video Recording
