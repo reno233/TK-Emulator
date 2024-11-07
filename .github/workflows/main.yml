@@ -1,118 +1,75 @@
-name: Run Android Emulator with Video Recording
+name: Android Emulator with TikTok Web
 
 on:
   push:
     branches:
       - main
-  pull_request:
 
 jobs:
-  test:
+  run_emulator:
     runs-on: ubuntu-latest
-    env:
-      API_LEVEL: 30               # Versão mais recente da API
-      TARGET: google_apis         # API do Google
-      CPU: x86_64                 # Arquitetura x86_64
-      EMULATOR_NAME: test-emulator
-
     steps:
-    - name: Check out repository
-      uses: actions/checkout@v2
+      # Instalar dependências essenciais
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openjdk-11-jdk wget unzip
 
-    - name: Set up JDK
-      uses: actions/setup-java@v2
-      with:
-        distribution: 'zulu'
-        java-version: '11'
+      # Baixar e instalar o Android SDK
+      - name: Install Android SDK
+        run: |
+          mkdir -p $HOME/android-sdk/cmdline-tools
+          wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
+          unzip -q cmdline-tools.zip -d $HOME/android-sdk/cmdline-tools
+          mv $HOME/android-sdk/cmdline-tools/cmdline-tools $HOME/android-sdk/cmdline-tools/latest
 
-    - name: Install Android SDK and dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils
-        sudo systemctl enable --now libvirtd
-      shell: bash
+      # Configurar variáveis de ambiente
+      - name: Set up environment variables
+        run: |
+          echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> $GITHUB_ENV
+          echo "PATH=$HOME/android-sdk/cmdline-tools/latest/bin:$HOME/android-sdk/platform-tools:$HOME/android-sdk/emulator:$PATH" >> $GITHUB_ENV
+          source $GITHUB_ENV
+          echo "Verifying sdkmanager location..."
+          ls $HOME/android-sdk/cmdline-tools/latest/bin
 
-    - name: Set up Android SDK
-      uses: android-actions/setup-android@v2
-      with:
-        api-level: ${{ env.API_LEVEL }}
-        target: ${{ env.TARGET }}
-        arch: ${{ env.CPU }}
-        channel: 'stable'
+      # Aceitar licenças e instalar componentes do SDK
+      - name: Install SDK components
+        run: |
+          yes | $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses
+          $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager "platform-tools" "emulator" "platforms;android-30" "system-images;android-30;google_apis;x86_64"
 
-    - name: Clean Android SDK Cache and Update
-      run: |
-        rm -rf ~/.android/*
-        rm -rf $ANDROID_HOME/.android/*
-        sdkmanager --no_https --update
-      shell: bash
+      # Criar e iniciar o emulador
+      - name: Start Emulator with Google Play
+        run: |
+          echo "no" | $HOME/android-sdk/cmdline-tools/latest/bin/avdmanager create avd -n test_avd -k "system-images;android-30;google_apis;x86_64" --force
+          $HOME/android-sdk/emulator/emulator -avd test_avd -no-snapshot -no-window -no-boot-anim -accel off &
+          adb wait-for-device
+          sleep 120  # Aguarda 120 segundos para garantir que o emulador inicializou
 
-    - name: Install SDK Components
-      run: |
-        sdkmanager --no_https --install "platform-tools" "emulator" "system-images;android-${API_LEVEL};google_apis;${CPU}"
-      shell: bash
+      # Aguardar inicialização do emulador
+      - name: Wait for Emulator to Boot
+        run: |
+          adb wait-for-device
+          boot_completed=0
+          while [ "$boot_completed" -ne 1 ]; do
+            boot_completed=$(adb shell getprop sys.boot_completed)
+            echo "Aguardando inicialização do emulador..."
+            sleep 5
+          done
+          echo "Emulador inicializado com sucesso!"
 
-    - name: List SDK Repositories
-      run: sdkmanager --list
-      shell: bash
+      # Baixar o APK do Google Chrome
+      - name: Download Google Chrome APK
+        run: |
+          wget https://dl.google.com/android/repository/chrome/GoogleChrome.apk -O google_chrome.apk
+          adb push google_chrome.apk /data/local/tmp/
 
-    - name: Install Specific System Image
-      run: |
-        sdkmanager --no_https "system-images;android-${API_LEVEL};google_apis;${CPU}"
-      shell: bash
+      # Instalar o Google Chrome
+      - name: Install Google Chrome
+        run: |
+          adb shell pm install -r /data/local/tmp/google_chrome.apk || echo "Google Chrome já instalado ou erro ao instalar"
 
-    - name: Create AVD
-      run: |
-        echo "Creating AVD..."
-        echo "no" | avdmanager create avd -n $EMULATOR_NAME -k "system-images;android-${API_LEVEL};google_apis;${CPU}" --force
-      shell: bash
-
-    - name: Start Emulator
-      run: |
-        $ANDROID_HOME/emulator/emulator -avd $EMULATOR_NAME -no-window -no-audio -no-snapshot-load -gpu off -no-cache -no-metrics -verbose &
-        # Aguarda até o emulador estar pronto (5 minutos)
-        adb devices
-        adb wait-for-device
-      shell: bash
-
-    - name: Diagnostic Check - List Connected Devices
-      run: |
-        echo "Checking connected devices..."
-        adb devices
-      shell: bash
-
-    - name: Wait for Emulator to be Fully Booted
-      run: |
-        boot_completed=false
-        timeout=0
-        while [ "$boot_completed" != "1" ] && [ $timeout -lt 300 ]; do
-          sleep 5
-          timeout=$((timeout+5))
-          boot_completed=$(adb shell getprop sys.boot_completed | tr -d '\r')
-          echo "Waiting for emulator to fully boot... ($timeout seconds elapsed)"
-        done
-        if [ "$boot_completed" != "1" ]; then
-          echo "Emulator did not boot successfully. Check logs for more information."
-          exit 1
-        fi
-      shell: bash
-
-    - name: Start Video Recording
-      run: |
-        adb shell screenrecord /sdcard/emulator_run.mp4 &
-      shell: bash
-
-    - name: Wait for Emulator to Run for 1 Minute
-      run: sleep 60
-
-    - name: Stop Video Recording and Pull Video
-      run: |
-        adb shell pkill -l2 screenrecord || echo "Screenrecord may not have been running"
-        adb pull /sdcard/emulator_run.mp4 .
-      shell: bash
-
-    - name: Upload Video as Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: emulator-run-video
-        path: emulator_run.mp4
+      # Iniciar o navegador e navegar para o TikTok
+      - name: Open TikTok in Browser
+        run: |
+          adb shell am start -a android.intent.action.VIEW -d "https://www.tiktok.com"
