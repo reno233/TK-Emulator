@@ -58,6 +58,10 @@ jobs:
           done
           echo "Emulador inicializado com sucesso!"
 
+      # Aguarda o emulador estar pronto para gravação
+      - name: Wait Before Recording
+        run: sleep 120  # Ajuste o tempo conforme necessário
+
       # Gravar o vídeo durante a execução do emulador
       - name: Start Screen Recording
         run: |
@@ -68,7 +72,7 @@ jobs:
       # Parar a gravação após o tempo
       - name: Stop Screen Recording
         run: |
-          adb shell killall -2 screenrecord || echo "Nenhum processo de screenrecord encontrado para interromper"
+          adb shell pgrep screenrecord && adb shell killall -2 screenrecord || echo "Nenhum processo de screenrecord encontrado para interromper"
           adb pull /data/local/tmp/tiktok_recording.mp4 ./tiktok_recording.mp4 || echo "Arquivo de gravação não encontrado"
 
       # Fazer upload do vídeo gravado
